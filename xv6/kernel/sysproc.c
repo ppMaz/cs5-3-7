@@ -41,6 +41,32 @@ sys_getpid(void)
   return proc->pid;
 }
 
+
+// reserve sys_call
+int 
+reserve (void)
+{
+ printf("reserve");
+ return 0;
+}
+
+// spot sys_call
+int
+spot (void)
+{
+ printf("spot");
+ return 0;
+}
+
+// getpinfo sys_call
+int
+getpinfo(void)
+{
+ printf("getpinfo");
+ return 0;
+}
+
+
 int
 sys_sbrk(void)
 {
