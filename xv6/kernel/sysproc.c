@@ -50,9 +50,13 @@ int
 sys_reserve (void)
 {
  int percent;
+
  if(argint(0, &percent) < 0)
     return -1;
  if(percent < 0 || percent > 100)
+    return -1;
+ total += percent;
+ if (total > 200)
     return -1;
  proc->sche_type = RESERVE;
  proc->sche_para = percent;

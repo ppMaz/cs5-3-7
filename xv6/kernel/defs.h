@@ -145,6 +145,7 @@ void            timerinit(void);
 // trap.c
 void            idtinit(void);
 extern uint     ticks;
+extern uint 	total; // sum of reserve should not exceed 200.
 void            tvinit(void);
 extern struct spinlock tickslock;
 

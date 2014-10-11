@@ -5,6 +5,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "pstat.h"
 
 #define RESERVE 1
 #define SPOT 0
@@ -265,17 +266,19 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct pstat pinfo;
   struct pstat *pst;
   //struct proc *top_bid_proc;
   //int top_bid = 0;
   int winner = -1;
   int counter = 0;
-
-  memset(pst, 0, sizeof(int)*NPROC); // insue
-  memset(pst, -1, sizeof(int)*NPROC); // pid
-  memset(pst, 0, sizeof(int)*NPROC); // # of times to run
-  memset(pst, 0, sizeof(int)*NPROC); // # of ms process has runned
-  memset(pst, 0, sizeof(int)*NPROC); // # of micro dollars. 
+  pst = &pinfo;
+  
+  memset(pinfo.inuse, 0, sizeof(int)*NPROC); // insue
+  memset(pinfo.pid, -1, sizeof(int)*NPROC); // pid
+  memset(pinfo.chosen, 0, sizeof(int)*NPROC); // # of times to run
+  memset(pinfo.time, 0, sizeof(int)*NPROC); // # of ms process has runned
+  memset(pinfo.charge, 0, sizeof(int)*NPROC); // # of micro dollars. 
 
   for(;;){
     // Enable interrupts on this processor.
@@ -316,11 +319,13 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       proc = 0;
     }
+    release(&ptable.lock);	
 
+    acquire(&ptable.lock);
     // if reserve process no winner 
     // run spot process
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        //TODO
+        // TODO
         // when system process neither SPOT or RESERVE
         // if we let all the NON reserve process run as 
         // SPOT process, but the system process still will not 
@@ -330,6 +335,8 @@ scheduler(void)
 	/*
 	if(p->state != RUNNABLE || p->sche_type != SPOT)
                 continue;
+	
+	
 	// look for the spot process with the highest bid
 	if (p->sche_para > top_bid)
 	{
@@ -343,6 +350,8 @@ scheduler(void)
 	// run the highest process
 	p = top_bid_proc; 
 	*/
+
+
 	if (p->state != RUNNABLE)
 		continue;
 	proc = p;
@@ -374,8 +383,7 @@ random_num ()
 //{
 	// read ptable
 	// fill pstat
-
-l	//for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	//for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 	//	pid[p] = p->pid;
 		
 
@@ -389,7 +397,7 @@ l	//for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
 
 
-void
+void 
 sched(void)
 {
   int intena;
