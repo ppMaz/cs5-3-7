@@ -6,6 +6,9 @@
 #include "proc.h"
 #include "sysfunc.h"
 
+#define RESERVE 1;
+#define SPOT 0;
+
 int
 sys_fork(void)
 {
@@ -41,28 +44,45 @@ sys_getpid(void)
   return proc->pid;
 }
 
-
+// TODO
 // reserve sys_call
 int 
-reserve (void)
+sys_reserve (void)
 {
- printf("reserve");
+ int percent;
+ if(argint(0, &percent) < 0)
+    return -1;
+ if(percent < 0 || percent > 100)
+    return -1;
+ proc->sche_type = RESERVE;
+ proc->sche_para = percent;
  return 0;
 }
 
+
+// TODO
 // spot sys_call
 int
-spot (void)
+sys_spot (void)
 {
- printf("spot");
- return 0;
+ int bid;
+  if(argint(0, &bid) < 0)
+    return -1;
+  if(bid < 0)
+    return -1;
+  proc->sche_type = SPOT;
+  proc->sche_para = bid;
+  return 0;
 }
+
 
 // getpinfo sys_call
 int
-getpinfo(void)
+sys_getpinfo(void)
 {
- printf("getpinfo");
+ //argptr(proc);
+ //fill_pstat(proc);
+ cprintf("getpinfo");
  return 0;
 }
 

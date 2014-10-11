@@ -61,6 +61,9 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
 struct proc {
+  int sche_para;	       // process's reserve percent/ spot's bid.
+  int sche_type;		       // spot is 0, reserve is 1
+  int charge;		       // total charge for the process to run
   uint sz;                     // Size of process memory (bytes)
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process

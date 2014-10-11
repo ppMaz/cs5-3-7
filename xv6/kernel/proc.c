@@ -6,6 +6,9 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define RESERVE 1
+#define SPOT 0
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -13,11 +16,17 @@ struct {
 
 static struct proc *initproc;
 
+int rseed = 0;
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+unsigned long random_num ();
+
+
+
+
 
 void
 pinit(void)
@@ -256,6 +265,17 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct pstat *pst;
+  //struct proc *top_bid_proc;
+  //int top_bid = 0;
+  int winner = -1;
+  int counter = 0;
+
+  memset(pst, 0, sizeof(int)*NPROC); // insue
+  memset(pst, -1, sizeof(int)*NPROC); // pid
+  memset(pst, 0, sizeof(int)*NPROC); // # of times to run
+  memset(pst, 0, sizeof(int)*NPROC); // # of ms process has runned
+  memset(pst, 0, sizeof(int)*NPROC); // # of micro dollars. 
 
   for(;;){
     // Enable interrupts on this processor.
@@ -263,10 +283,26 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    winner = (int)(random_num() % 100);
 
+    // run reserve process first
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	if(p->state != RUNNABLE || p->sche_type != RESERVE)
+        	continue;
+	counter += p->sche_para;
+	if(counter < winner)
+		continue;
+	pst->inuse[p - ptable.proc] = 1;
+	pst->pid[p - ptable.proc] = p->pid;
+	pst->chosen[p - ptable.proc] += 1;
+	pst->time[p - ptable.proc] += 10; //10ms
+	pst->charge[p - ptable.proc] += 10*(p->sche_para); // in nano dollar
+	
+
+	
+	// setup the info for pstat
+      // if counter >= winner 
+      // run this reserve process!	
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -280,13 +316,79 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       proc = 0;
     }
-    release(&ptable.lock);
 
+    // if reserve process no winner 
+    // run spot process
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        //TODO
+        // when system process neither SPOT or RESERVE
+        // if we let all the NON reserve process run as 
+        // SPOT process, but the system process still will not 
+        // choose SPOT or RESERVE in the next time slice
+        // what should i do?
+
+	/*
+	if(p->state != RUNNABLE || p->sche_type != SPOT)
+                continue;
+	// look for the spot process with the highest bid
+	if (p->sche_para > top_bid)
+	{
+		top_bid = p->sche_para;
+		top_bid_proc = p;
+	}
+	if (p != &ptable.proc[NPROC-1])
+	{
+		continue;	
+	}
+	// run the highest process
+	p = top_bid_proc; 
+	*/
+	if (p->state != RUNNABLE)
+		continue;
+	proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
+        swtch(&cpu->scheduler, proc->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        proc = 0;
+	
+    }	
+    release(&ptable.lock);
   }
 }
 
+// random number generator. 
+unsigned long
+random_num ()
+{
+  return (rseed) = ((rseed) * 1103515245 + 12345) & ((1U << 31) - 1);
+}
+
+
+
+// TODO
+//int fill_pstat()
+//{
+	// read ptable
+	// fill pstat
+
+l	//for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	//	pid[p] = p->pid;
+		
+
+//	}
+//	return 0;
+//}
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state.
+
+
+
+
 void
 sched(void)
 {

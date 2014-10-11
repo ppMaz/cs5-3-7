@@ -104,7 +104,7 @@ static int (*syscalls[])(void) = {
 [SYS_write]   sys_write,
 [SYS_uptime]  sys_uptime,
 [SYS_reserve] sys_reserve,
-[SYS_spot]    sys_sot,
+[SYS_spot]    sys_spot,
 [SYS_getpinfo] sys_getpinfo,
 };
 
