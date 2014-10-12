@@ -299,7 +299,7 @@ scheduler(void)
 	pst->pid[p - ptable.proc] = p->pid;
 	pst->chosen[p - ptable.proc] += 1;
 	pst->time[p - ptable.proc] += 10; //10ms
-	pst->charge[p - ptable.proc] += 10*(p->sche_para); // in nano dollar
+	pst->charge[p - ptable.proc] += 1; // in nano dollar
 	
 
 	
