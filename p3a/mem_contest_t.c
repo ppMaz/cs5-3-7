@@ -14,6 +14,8 @@ typedef struct block_hd{
 } block_header;
 
 block_header* list_head = NULL;
+// nxt is the ptr for next fit algro.
+block_header* nxt = NULL;
 
 int Mem_Init(int sizeOfRegion){
 	int fd;
@@ -29,10 +31,13 @@ int Mem_Init(int sizeOfRegion){
 }
 
 void* Mem_Alloc(int size){
-	//first fit algorithm
+	//next fit algorithm
 	block_header* current = list_head;
+	if (nxt != NULL){
+		current = nxt;
+	}
 	while(current != NULL){
-		if(!(current->size & 0x0001)){
+        if(!(current->size & 0x0001)){
 			//current block is free
 			if(size + sizeof(block_header) < current->size){
 				//current block is bigger than require, split
@@ -43,16 +48,25 @@ void* Mem_Alloc(int size){
 				current->next = next;
 				current->size = size;
 				(current->size) ++;
+				// next search start from current->next
+				nxt = next;
+				// printf("%p\n", (void*)(current+1));
 				return (void*)(current+1);
 			}
 			else if(size == current->size){
 				(current->size) ++;
+				// next search start from current->next
+				nxt = current->next;
+				// printf("%p\n", (void*)(current+1));
 				return (void*)(current+1);
 			}
 			
 		}
 		//otherwise skip it
 		current = current->next;
+		// @ end of the list, start from head.
+		if (current == NULL)
+			nxt = NULL;
 	}
 	return NULL;
 }
