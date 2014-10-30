@@ -32,7 +32,7 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
-  sz = 0;
+  sz = PGSIZE;
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
@@ -40,16 +40,20 @@ exec(char *path, char **argv)
       continue;
     if(ph.memsz < ph.filesz)
       goto bad;
-    if((sz = allocuvm(pgdir, sz, ph.va + ph.memsz)) == 0)
-      goto bad;
+    cprintf("start= %d size=%d\n", sz, ph.va + ph.memsz);
+    if((sz = allocuvm(pgdir, sz, ph.va + ph.memsz)) == 0) {
+	goto bad;
+    }
+    cprintf("sz= %d\n", sz);
     if(loaduvm(pgdir, (char*)ph.va, ip, ph.offset, ph.filesz) < 0)
-      goto bad;
+	goto bad;
   }
   iunlockput(ip);
   ip = 0;
 
   // Allocate a one-page stack at the next page boundary
   sz = PGROUNDUP(sz);
+  cprintf("start= %d size=%d\n", sz, sz + PGSIZE);
   if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
     goto bad;
 
