@@ -25,8 +25,16 @@ int Mem_Init(int sizeOfRegion){
 		fprintf(stderr, "Error! Init more than once.\n");
 		return -1;
 	}
-	int fd;
+	if(sizeOfRegion <= 0){
+		fprintf(stderr,"Error:mem.c: Requested block size is not positive\n");
+		return -1;
+	}
+	int fd = 0;
+	int page_size = 0;
 	void* space_ptr;
+	page_size = getpagesize();
+	if(sizeOfRegion % page_size != 0)
+                sizeOfRegion = sizeOfRegion + (page_size-(sizeOfRegion % page_size));
 	fd = open ("/dev/zero", O_RDWR);
 	space_ptr = mmap(NULL,sizeOfRegion, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	list_head = (block_header*)space_ptr;
@@ -86,6 +94,10 @@ void* Mem_Alloc(int size){
 }
 
 int Mem_Free(void *ptr){
+	if (ptr == NULL) {
+		printf("Error! tried to free NULL\n");
+                return -1;
+	}
 	block_header* current = (block_header*)((char*)ptr -sizeof(block_header));
 	// check bad free ptr
 	if (current->magic_num != magic_num) {

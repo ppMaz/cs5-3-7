@@ -4,35 +4,10 @@ Name:Xuyi Ruan
 CSL-ID:xuyi
 (Leave the second name and ID blank if working alone)
 
-Linux-Implementation Details:
 
-In this program, we implement three versions of malloc and free for three different workloads. 
+contest_t:
+- make the data structre double-linked list
+- use next-fit algro
 
-///////////////////////////////////////////////////////////////////
-// Workload1: 
-// Description: All calls to Mem_Alloc() will have size as 16 bytes. Mem_Alloc() can return NULL otherwise.
-///////////////////////////////////////////////////////////////////
-
-For workload1, we managed the free list with bit map. By using bit-map for wordload1, all 16 bytes fixed size allocation, it saves lots of space in the header section, which means more free space for allocation.  In our bit map,  we managed 8 blocks(16-bytes each) with a char(8bit). When the corresponding block is in use, it is marked as 1. 0 is marked  when the  is free.   
-
-
-///////////////////////////////////////////////////////////////////
-// Workload2:
-// Description: All calls to Mem_Alloc() will have size as one among 16, 80, and 256 bytes. Mem_Alloc() can return NULL otherwise.
-//////////////////////////////////////////////////////////////////
-
-For workload2, we first divided the memory chunk into 16-bytes size same as what we did for the first workload. Then up to the allocation with 80, we look for 5 consecutive 16-bytes block, and 256 bytes with 16 consecutive 16-bytes block. For bit map, we use 4bit to represent the status of the corresponding block. For example. 000x, the third bit indicate whether the current block is free(0) or occupied(1). 
-011x->indicates the current block is occupied by 16bytes allocation, 
-101x->indicates the current block is occupied by 80bytes allocation, 
-111x->indicates the current block is occupied by 256bytes allocation. 
-  
-/////////////////////////////////////////////////////////////////
-// Workload3:
-// Description: Calls to Mem_Alloc() may have any size
-//////////////////////////////////////////////////////////////
-
-For workload3, we use first fit algro. to manage the free list.   
-
- 
-XV6-Implementation Details:
-
+contest_n:
+- double-linked list with next-fit algro
