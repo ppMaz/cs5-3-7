@@ -31,8 +31,12 @@ exec(char *path, char **argv)
   if((pgdir = setupkvm()) == 0)
     goto bad;
 
+  // the code BELOW deals with the CODE segement of the adress space.
+  // TODO:
   // Load program into memory.
   sz = PGSIZE;
+  cprintf("@CODE start:%d\n", sz);
+  
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
@@ -40,25 +44,49 @@ exec(char *path, char **argv)
       continue;
     if(ph.memsz < ph.filesz)
       goto bad;
-    cprintf("start= %d size=%d\n", sz, ph.va + ph.memsz);
+    cprintf("Allocate memory in the user space\n");
+    cprintf("start= %d, va=%d, memsz=%d, size=%d\n", sz, ph.va, ph.memsz, ph.va + ph.memsz);
     if((sz = allocuvm(pgdir, sz, ph.va + ph.memsz)) == 0) {
 	goto bad;
     }
-    cprintf("sz= %d\n", sz);
     if(loaduvm(pgdir, (char*)ph.va, ip, ph.offset, ph.filesz) < 0)
 	goto bad;
   }
   iunlockput(ip);
   ip = 0;
+  cprintf("@CODE end:%d\n", sz);
 
+  // The code ABOVE deal with CODE segement
+
+  // Program stack @start 
   // Allocate a one-page stack at the next page boundary
+  // this is the stack allocation part.
+  // TODO
+  // unlock the stack ability to become not limited to only ONE page.
+
   sz = PGROUNDUP(sz);
+  cprintf("@STACK start:%d\n", sz);
   cprintf("start= %d size=%d\n", sz, sz + PGSIZE);
+  // since the queue will initialize with the value sz 
+  // implicitly after the allocation of stack is done
+  // we do not want to modify the value of sz 
+  // we replace sz with sp below. 
+  //
   if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
     goto bad;
-
+  cprintf("@STACK end:%d\n", sz);
+  
+  // code below not need to modify 
   // Push argument strings, prepare rest of stack in ustack.
+  
+  // TODO
+  // change sp to USERTOP to relocate the stack to the buttom of addr space.
   sp = sz;
+  // sz is the end of the stack ptr
+  // in the original arrangment of the address space for program
+  // the stack also grows backwards. therefore, not much changes are 
+  // need to do below..
+  
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
       goto bad;
@@ -74,6 +102,7 @@ exec(char *path, char **argv)
   ustack[1] = argc;
   ustack[2] = sp - (argc+1)*4;  // argv pointer
 
+  // minus - stack grows backward
   sp -= (3+argc+1) * 4;
   if(copyout(pgdir, sp, ustack, (3+argc+1)*4) < 0)
     goto bad;
