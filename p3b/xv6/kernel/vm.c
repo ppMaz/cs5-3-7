@@ -237,8 +237,10 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
     return oldsz;
 
   a = PGROUNDUP(oldsz);
+  cprintf ("a=%d, oldsz=%d, newsz=%d\n", a, oldsz,newsz);
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
+    cprintf("alloc from physic sucuess\n");
     if(mem == 0){
       cprintf("allocuvm out of memory\n");
       deallocuvm(pgdir, newsz, oldsz);
@@ -318,6 +320,19 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
       goto bad;
   }
+ /* 
+  if((pte = walkpgdir(pgdir, (void*)USERTOP-PGSIZE, 0)) == 0)
+    panic("copyuvm: pte should exist");
+  if(!(*pte & PTE_P))
+    panic("copyuvm: page not present");
+  pa = PTE_ADDR(*pte);
+  if((mem = kalloc()) == 0)
+    goto bad;
+  memmove(mem, (char*)pa, PGSIZE);
+  if(mappages(d, (void*)USERTOP-PGSIZE, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
+    goto bad;
+  */
+
   return d;
 
 bad:

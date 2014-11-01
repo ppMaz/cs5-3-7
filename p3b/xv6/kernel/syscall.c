@@ -60,6 +60,11 @@ argptr(int n, char **pp, int size)
     return -1;
   if((uint)i >= proc->sz || (uint)i+size > proc->sz)
     return -1;
+
+  if((uint)i>=0 && (uint)i<PGSIZE){
+    cprintf("in argptr. try to acess the first page. addr: %d\n",(uint)i);
+    return -1;
+  }
   *pp = (char*)i;
   return 0;
 }

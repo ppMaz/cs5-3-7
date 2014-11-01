@@ -65,23 +65,24 @@ exec(char *path, char **argv)
   // unlock the stack ability to become not limited to only ONE page.
 
   sz = PGROUNDUP(sz);
-  cprintf("@STACK start:%d\n", sz);
-  cprintf("start= %d size=%d\n", sz, sz + PGSIZE);
   // since the queue will initialize with the value sz 
   // implicitly after the allocation of stack is done
   // we do not want to modify the value of sz 
   // we replace sz with sp below. 
   //
-  if((sz = allocuvm(pgdir, sz, sz + PGSIZE)) == 0)
+  sp = USERTOP;
+  //cprintf("@STACK start:%d\n", sp-PGSIZE);
+  //cprintf("start= %d, size=%d\n", sp-PGSIZE, sp);
+  if((sp = allocuvm(pgdir, sp-PGSIZE, sp)) == 0)
     goto bad;
-  cprintf("@STACK end:%d\n", sz);
+  //cprintf("@STACK end:%d\n", sp);
   
   // code below not need to modify 
   // Push argument strings, prepare rest of stack in ustack.
   
   // TODO
   // change sp to USERTOP to relocate the stack to the buttom of addr space.
-  sp = sz;
+  // sp = sz;
   // sz is the end of the stack ptr
   // in the original arrangment of the address space for program
   // the stack also grows backwards. therefore, not much changes are 

@@ -107,7 +107,7 @@ int
 growproc(int n)
 {
   uint sz;
-  
+  cprintf("start in heap\n");
   sz = proc->sz;
   if(n > 0){
     if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
@@ -118,6 +118,7 @@ growproc(int n)
   }
   proc->sz = sz;
   switchuvm(proc);
+  cprintf("end in heap\n");
   return 0;
 }
 
@@ -178,7 +179,6 @@ exit(void)
       proc->ofile[fd] = 0;
     }
   }
-
   iput(proc->cwd);
   proc->cwd = 0;
 
