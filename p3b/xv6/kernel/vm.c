@@ -320,7 +320,9 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
       goto bad;
   }
- /* 
+
+  // copy stack. 
+  //
   if((pte = walkpgdir(pgdir, (void*)USERTOP-PGSIZE, 0)) == 0)
     panic("copyuvm: pte should exist");
   if(!(*pte & PTE_P))
@@ -331,8 +333,8 @@ copyuvm(pde_t *pgdir, uint sz)
   memmove(mem, (char*)pa, PGSIZE);
   if(mappages(d, (void*)USERTOP-PGSIZE, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
     goto bad;
-  */
-
+  
+  cprintf("sucessfully copy child address space\n");
   return d;
 
 bad:

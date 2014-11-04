@@ -46,7 +46,7 @@ exec(char *path, char **argv)
       goto bad;
     cprintf("Allocate memory in the user space\n");
     cprintf("start= %d, va=%d, memsz=%d, size=%d\n", sz, ph.va, ph.memsz, ph.va + ph.memsz);
-    if((sz = allocuvm(pgdir, sz, ph.va + ph.memsz)) == 0) {
+    if((sz = allocuvm(pgdir, sz, ph.va + ph.memsz+PGSIZE)) == 0) {
 	goto bad;
     }
     if(loaduvm(pgdir, (char*)ph.va, ip, ph.offset, ph.filesz) < 0)
@@ -71,11 +71,12 @@ exec(char *path, char **argv)
   // we replace sz with sp below. 
   //
   sp = USERTOP;
-  //cprintf("@STACK start:%d\n", sp-PGSIZE);
-  //cprintf("start= %d, size=%d\n", sp-PGSIZE, sp);
-  if((sp = allocuvm(pgdir, sp-PGSIZE, sp)) == 0)
+  proc->stack_tp=sp-PGSIZE;
+  cprintf("@STACK start:%d\n", sp);
+  // cprintf("start= %d, size=%d\n", sp, sp+PGSIZE);
+  if((sp = allocuvm(pgdir, proc->stack_tp,  sp)) == 0)
     goto bad;
-  //cprintf("@STACK end:%d\n", sp);
+  cprintf("@STACK end:%d\n", sp);
   
   // code below not need to modify 
   // Push argument strings, prepare rest of stack in ustack.
@@ -97,6 +98,7 @@ exec(char *path, char **argv)
       goto bad;
     ustack[3+argc] = sp;
   }
+  cprintf("@STACK sp now!:0x%d\n", sp);
   ustack[3+argc] = 0;
 
   ustack[0] = 0xffffffff;  // fake return PC
@@ -122,7 +124,7 @@ exec(char *path, char **argv)
   proc->tf->esp = sp;
   switchuvm(proc);
   freevm(oldpgdir);
-
+  cprintf("proc->pid:%d\n",proc->pid);
   return 0;
 
  bad:

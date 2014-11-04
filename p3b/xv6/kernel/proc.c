@@ -143,9 +143,10 @@ fork(void)
     return -1;
   }
   np->sz = proc->sz;
+  np->stack_tp = proc-> stack_tp;
   np->parent = proc;
   *np->tf = *proc->tf;
-
+  
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -153,10 +154,10 @@ fork(void)
     if(proc->ofile[i])
       np->ofile[i] = filedup(proc->ofile[i]);
   np->cwd = idup(proc->cwd);
- 
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
+  cprintf("pid is: %d and process=%s\n", pid, proc->name);
   return pid;
 }
 

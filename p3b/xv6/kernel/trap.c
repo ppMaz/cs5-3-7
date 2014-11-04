@@ -36,7 +36,7 @@ trap(struct trapframe *tf)
 {
   if(tf->trapno == T_PGFLT)
   {
-	cprintf("we got a page fault @ addr 0x%x\n", rcr2());
+	cprintf("SEG FAULT we got a page fault @ addr 0x%x\n", rcr2());
   }
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)

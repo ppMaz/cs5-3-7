@@ -17,8 +17,11 @@
 int
 fetchint(struct proc *p, uint addr, int *ip)
 {
-  if(addr >= p->sz || addr+4 > p->sz)
+  if( ( addr >= p->sz && addr < USERTOP-PGSIZE) || ( addr+4 > p->sz && addr+4 < USERTOP-PGSIZE ))
+  {
+    cprintf("Fetch Int problem\n");
     return -1;
+  }
   *ip = *(int*)(addr);
   return 0;
 }
@@ -31,14 +34,33 @@ fetchstr(struct proc *p, uint addr, char **pp)
 {
   char *s, *ep;
 
-  if(addr >= p->sz)
+  if(addr >= p->sz && addr < USERTOP-PGSIZE)
     return -1;
-  *pp = (char*)addr;
-  ep = (char*)p->sz;
+
+// cp the string from code and heap.
+if(addr < p->sz)
+{
+  *pp = (char*)addr; // start 
+  ep = (char*)p->sz; // end 
   for(s = *pp; s < ep; s++)
     if(*s == 0)
       return s - *pp;
   return -1;
+}
+
+// cp the string from stack.
+else
+{
+  *pp = (char*)addr; // start 
+  ep = (char*)(USERTOP); // end 
+  for(s = *pp; s < ep; s++)
+    if(*s == 0)
+      return s - *pp;
+  return -1;
+
+}
+
+
 }
 
 // Fetch the nth 32-bit system call argument.
@@ -58,7 +80,8 @@ argptr(int n, char **pp, int size)
   
   if(argint(n, &i) < 0)
     return -1;
-  if((uint)i >= proc->sz || (uint)i+size > proc->sz)
+  // since you move every thing, the stack is now down in the button, need more err condition.
+  if( ( (uint)i >= proc->sz && (uint)i < USERTOP-PGSIZE) || ( (uint)i+size > proc->sz && (uint)i+size < USERTOP-PGSIZE) )
     return -1;
 
   if((uint)i>=0 && (uint)i<PGSIZE){
