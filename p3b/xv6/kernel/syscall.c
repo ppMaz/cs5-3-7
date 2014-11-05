@@ -24,6 +24,12 @@ fetchint(struct proc *p, uint addr, int *ip)
     cprintf("Fetch Int problem\n");
     return -1;
   }
+  // when addr out of USERTOP
+  if( ( addr >= p->sz && addr > USERTOP) || ( addr+4 > p->sz && addr+4 > USERTOP ))
+  {
+    cprintf("Fetch Int problem\n");
+    return -1;
+  }
   *ip = *(int*)(addr);
   return 0;
 }
@@ -37,6 +43,8 @@ fetchstr(struct proc *p, uint addr, char **pp)
   char *s, *ep;
   // TODO: USERTOP-PGSIZE to proc->stack_tp
   if(addr >= p->sz && addr < p->stack_tp)
+    return -1;
+  if(addr > USERTOP)
     return -1;
 
 // cp the string from code and heap.
@@ -85,6 +93,9 @@ argptr(int n, char **pp, int size)
   // since you move every thing, the stack is now down in the button, need more err condition.
   // TODO: p->stack_tp
   if( ( (uint)i >= proc->sz && (uint)i < proc->stack_tp) || ( (uint)i+size > proc->sz && (uint)i+size < proc->stack_tp) )
+    return -1;
+  // above user top
+  if( ( (uint)i >= proc->sz && (uint)i > USERTOP) || ( (uint)i+size > proc->sz && (uint)i+size > USERTOP) )
     return -1;
 
   if((uint)i>=0 && (uint)i<PGSIZE){
