@@ -55,8 +55,11 @@ sys_sbrk(void)
    // panic("from sys_sbrk: heap is going to overwriting stack!");
    // return -1;
   //}
-
-  addr = proc->sz;
+  addr = proc->sz;  
+  if (addr + n + PGSIZE > proc->stack_tp)
+    return -1;
+  if (proc->stack_tp == 0)
+    return -1;
   if(growproc(n) < 0)
     return -1;
   return addr;
