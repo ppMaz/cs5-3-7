@@ -34,10 +34,11 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
-  if(tf->trapno == T_PGFLT)
-  {
-	cprintf("SEG FAULT we got a page fault @ addr 0x%x\n", rcr2());
-  }
+  //if(tf->trapno == T_PGFLT)
+  //{
+//	cprintf("SEG FAULT@ addr 0x%x\n", rcr2());
+  //}
+
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
       exit();
@@ -79,6 +80,28 @@ trap(struct trapframe *tf)
             cpu->id, tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+    if ((rcr2() > (proc->stack_tp)-PGSIZE) && (rcr2() < proc->stack_tp))
+    {
+	// addr is within one page above stack
+	if (rcr2() > ((proc->sz)+PGSIZE)){
+		// addr is not touch with heap 
+		if((allocuvm(proc->pgdir, (proc->stack_tp)- PGSIZE, proc->stack_tp)) != 0) {
+			proc->stack_tp = (proc->stack_tp)-PGSIZE;
+			return;
+    		}
+	}
+	// addr is not touch with heap 
+    }
+    cprintf("SEG FAULT@ addr 0x%x\n", rcr2());	
+  //display error message
+ // check if it is one page from addr here
+ // if it is within one page, alloc more page
+ // allouvm
+ // check if the new allocate size is one PG from the heap.
+ // if it is one pg after heap, kill it.
+     proc->killed=1;
+  break;
    
   default:
     if(proc == 0 || (tf->cs&3) == 0){

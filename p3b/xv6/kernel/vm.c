@@ -237,12 +237,12 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
     return oldsz;
 
   a = PGROUNDUP(oldsz);
-  cprintf ("a=%d, oldsz=%d, newsz=%d\n", a, oldsz,newsz);
+  //cprintf ("a=%d, oldsz=%d, newsz=%d\n", a, oldsz,newsz);
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
-    cprintf("alloc from physic sucuess\n");
+    //cprintf("alloc from physic sucuess\n");
     if(mem == 0){
-      cprintf("allocuvm out of memory\n");
+     // cprintf("allocuvm out of memory\n");
       deallocuvm(pgdir, newsz, oldsz);
       return 0;
     }
@@ -334,7 +334,6 @@ copyuvm(pde_t *pgdir, uint sz)
   if(mappages(d, (void*)USERTOP-PGSIZE, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
     goto bad;
   
-  cprintf("sucessfully copy child address space\n");
   return d;
 
 bad:

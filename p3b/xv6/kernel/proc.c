@@ -107,18 +107,16 @@ int
 growproc(int n)
 {
   uint sz;
-  cprintf("start in heap\n");
   sz = proc->sz;
   if(n > 0){
-    if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
-      return -1;
+      if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
+        return -1;
   } else if(n < 0){
     if((sz = deallocuvm(proc->pgdir, sz, sz + n)) == 0)
       return -1;
   }
   proc->sz = sz;
   switchuvm(proc);
-  cprintf("end in heap\n");
   return 0;
 }
 
@@ -143,6 +141,7 @@ fork(void)
     return -1;
   }
   np->sz = proc->sz;
+  // add stack_tp attribute.
   np->stack_tp = proc-> stack_tp;
   np->parent = proc;
   *np->tf = *proc->tf;
@@ -157,7 +156,7 @@ fork(void)
   pid = np->pid;
   np->state = RUNNABLE;
   safestrcpy(np->name, proc->name, sizeof(proc->name));
-  cprintf("pid is: %d and process=%s\n", pid, proc->name);
+  // cprintf("pid is: %d and process=%s\n", pid, proc->name);
   return pid;
 }
 
@@ -443,5 +442,4 @@ procdump(void)
     cprintf("\n");
   }
 }
-
 

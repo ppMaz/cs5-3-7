@@ -17,7 +17,9 @@
 int
 fetchint(struct proc *p, uint addr, int *ip)
 {
-  if( ( addr >= p->sz && addr < USERTOP-PGSIZE) || ( addr+4 > p->sz && addr+4 < USERTOP-PGSIZE ))
+  // add additional boundary checking for stack moved to the buttom
+  // TODO: change USERTOP-PGSIZE  to proc->stack_tp
+  if( ( addr >= p->sz && addr < p->stack_tp) || ( addr+4 > p->sz && addr+4 < p->stack_tp ))
   {
     cprintf("Fetch Int problem\n");
     return -1;
@@ -33,8 +35,8 @@ int
 fetchstr(struct proc *p, uint addr, char **pp)
 {
   char *s, *ep;
-
-  if(addr >= p->sz && addr < USERTOP-PGSIZE)
+  // TODO: USERTOP-PGSIZE to proc->stack_tp
+  if(addr >= p->sz && addr < p->stack_tp)
     return -1;
 
 // cp the string from code and heap.
@@ -44,7 +46,7 @@ if(addr < p->sz)
   ep = (char*)p->sz; // end 
   for(s = *pp; s < ep; s++)
     if(*s == 0)
-      return s - *pp;
+      return s - *pp; // when reach \0, return the length of string.
   return -1;
 }
 
@@ -81,7 +83,8 @@ argptr(int n, char **pp, int size)
   if(argint(n, &i) < 0)
     return -1;
   // since you move every thing, the stack is now down in the button, need more err condition.
-  if( ( (uint)i >= proc->sz && (uint)i < USERTOP-PGSIZE) || ( (uint)i+size > proc->sz && (uint)i+size < USERTOP-PGSIZE) )
+  // TODO: p->stack_tp
+  if( ( (uint)i >= proc->sz && (uint)i < proc->stack_tp) || ( (uint)i+size > proc->sz && (uint)i+size < proc->stack_tp) )
     return -1;
 
   if((uint)i>=0 && (uint)i<PGSIZE){

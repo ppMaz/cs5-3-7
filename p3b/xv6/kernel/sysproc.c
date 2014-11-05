@@ -46,9 +46,16 @@ sys_sbrk(void)
 {
   int addr;
   int n;
+  //int page_n = PGROUNDUP(n);
+  //int heap = PGROUNDUP(proc->sz);
 
   if(argint(0, &n) < 0)
     return -1;
+  //if (heap + page_n > proc->stack_tp){
+   // panic("from sys_sbrk: heap is going to overwriting stack!");
+   // return -1;
+  //}
+
   addr = proc->sz;
   if(growproc(n) < 0)
     return -1;
