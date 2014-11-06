@@ -70,13 +70,17 @@ exec(char *path, char **argv)
   // implicitly after the allocation of stack is done
   // we do not want to modify the value of sz 
   // we replace sz with sp below. 
-  //
+
+  /////////////////////
+  //     SEC 3.1   ///
+  ///////////////////
   sp = USERTOP;
   proc->stack_tp=sp-PGSIZE;
   //cprintf("@STACK start:%d\n", sp);
   // cprintf("start= %d, size=%d\n", sp, sp+PGSIZE);
   if((sp = allocuvm(pgdir, sp-PGSIZE,  sp)) == 0)
     goto bad;
+  
   //cprintf("@STACK end:%d\n", sp);
   
   // code below not need to modify 

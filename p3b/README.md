@@ -46,6 +46,30 @@ stack (grows backward)
 each other. 
 ex. when heap in page1, stack will grows from the end of addr space up to page3 of the addr space, so that it wont crash with heap.
 
+NOTES:
+ 
+1. Move ONE-page size stack into the buttom of the stack  
+-> change stack ptr 'sp' sec 3.1, in exec.c   
+-> add boundrary @fetchint @fetchstr @argptr in syscall.c  
+Explanation:  
+-> new stack is now reallocated to the buttom of addr space  
+-> the previous boundrary checking need to address for the new location of stack.  
+
+2. unlock the limition of ONEPAGE stack.  
+-> stack already grows upward, good news for us!  
+-> what do we need to change to grow stack?  
+-> stack expand upward, when process needs more space in stack  
+-> if the requre addr is within one page of the stack, allocated it.  
+-> how doe we allocated?   
+-> add SEGFAULT handling in trap.c  
+
+
+3. protest heap from growing into stack  
+-> add boundary checking in sys_sbrk() in sysproc.c  
+-> sys_sbrk() checks boundrary before calling growproc() here;  
+
+
+
 
 
 

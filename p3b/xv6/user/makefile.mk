@@ -19,7 +19,6 @@ USER_PROGS := \
 	zombie\
 	test\
 	test1\
-	bounds3
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 
