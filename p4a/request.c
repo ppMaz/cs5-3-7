@@ -59,7 +59,7 @@ int requestParseURI(char *uri, char *filename, char *cgiargs)
 {
    char *ptr;
 
-   if g!strstr(uri, "cgi")) {
+   if (!strstr(uri, "cgi")) {
       // static
       strcpy(cgiargs, "");
       sprintf(filename, ".%s", uri);
