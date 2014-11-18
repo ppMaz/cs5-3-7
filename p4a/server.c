@@ -89,18 +89,15 @@ void *consumer(void *arg){
 	while (1){
 		int connfd;
 		pthread_mutex_lock(&mutex);
-                while (count == 0)
-                        pthread_cond_wait(&fill, &mutex);
-                connfd = get();
+        while (count == 0)
+              pthread_cond_wait(&fill, &mutex);
+    	connfd = get();
 		requestHandle(connfd);
-                Close(connfd);
+        Close(connfd);
 		pthread_cond_signal(&empty);
-                pthread_mutex_unlock(&mutex);
-		
+    	pthread_mutex_unlock(&mutex);
 	}
 }
-
-
 
 
 
@@ -108,8 +105,8 @@ void *consumer(void *arg){
 void getargs(int *port, int *num_thread, int *buffer_size, int argc, char *argv[])
 {
     if (argc != 4) {
-	fprintf(stderr, "Usage: %s <port> <threads> <buffers>\n", argv[0]);
-	exit(1);
+		fprintf(stderr, "Usage: %s <port> <threads> <buffers>\n", argv[0]);
+		exit(1);
     }
     *port = atoi(argv[1]);
     *num_thread = atoi(argv[2]);
