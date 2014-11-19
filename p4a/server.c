@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <stdlib.h>
-
+#include <string.h>
 #define MAX 10000 
 /////////////////////////////////////////
 // server.c: A very, very simple web server
@@ -32,21 +32,77 @@ typedef struct __myarg_t {
 // Put and Get routines  //
 //////////////////////////
 
-int buffer[MAX]; //buffe size
+struct request_complex buffer[MAX]; //buffe size
 int fill_index;
 int use_index;
 int count;
 int real_size;
 
-void put(int value) 
-{
-	buffer[fill_index] = value;
-	fill_index = (fill_index + 1) % real_size;
-	count++; 
+int f_index_back_wrap(int i){
+	if((--i) == -1)
+		i = real_size-1;
+	return i;
 }
 
-int get() {
-	int tmp = buffer [use_index];
+int rc_cpy(struct request_complex * dst, struct request_complex * src){
+	dst->fd = src->fd;
+	dst->filesize = src->filesize;
+	dst->is_static = src->is_static;
+	dst->sbuf = src->sbuf;
+	assert(strncpy(dst->filename,src->filename,8192));
+	assert(strncpy(dst->cgiargs,src->cgiargs,8192));
+	return 0;
+}
+void put(struct request_complex request_c) 
+{
+	//Maintain a ordered list
+	//add new item into the list
+	buffer[fill_index] = request_c;
+	//sorting
+	//put smallest item in the front of the queue
+        //no further need to do if the count is 0
+        if(count != 0){
+		//two cases
+		//case 1, use < fill
+		int i;
+		if(use_index < fill_index){
+			for(i=fill_index; i>use_index; i--){
+				if(buffer[i].filesize >= buffer[i-1].filesize){
+					break;
+				}
+				//swap
+				struct request_complex tmp;
+				rc_cpy(&tmp,&(buffer[i]));			
+				rc_cpy(&(buffer[i]),&(buffer[i-1]));
+				rc_cpy(&(buffer[i-1]),&tmp);
+			}
+		}
+		//case 2, use > fill
+		else if(use_index > fill_index){
+			int j;
+			for(i=fill_index,j=0;j<count;i=f_index_back_wrap(i),j++){
+				if(buffer[i].filesize >= buffer[f_index_back_wrap(i)].filesize){
+					break;
+				}
+				//swap
+				struct request_complex tmp;
+                                rc_cpy(&tmp,&(buffer[i]));
+                                rc_cpy(&(buffer[i]),&(buffer[f_index_back_wrap(i)]));
+                                rc_cpy(&(buffer[f_index_back_wrap(i)]),&tmp);
+
+			}
+		}
+		else{
+			fprintf(stderr,"inside put(), unexpected control flow\n");
+			assert(2==3);
+		}
+	}
+	fill_index = (fill_index + 1) % real_size;
+ 	count++;
+}
+
+struct request_complex get() {
+	struct request_complex tmp = buffer [use_index];
 	use_index = (use_index + 1) % real_size;
 	count--;
 	return tmp;
@@ -75,7 +131,7 @@ void *producer (void *arg) {
 		pthread_mutex_lock(&mutex);
 		while (count == real_size)
 			pthread_cond_wait(&empty, &mutex);
-		put(connfd);
+		put(pre_handle(connfd));
 		pthread_cond_signal(&fill);
 		pthread_mutex_unlock(&mutex);
 	}
@@ -87,15 +143,14 @@ void *producer (void *arg) {
 
 void *consumer(void *arg){
 	while (1){
-		int connfd;
 		pthread_mutex_lock(&mutex);
-        while (count == 0)
-              pthread_cond_wait(&fill, &mutex);
-    	connfd = get();
-		requestHandle(connfd);
-        Close(connfd);
+        	while (count == 0)
+			pthread_cond_wait(&fill, &mutex);
+    		struct request_complex tmp = get();
+		requestHandle(tmp);
+       		Close(tmp.fd);
 		pthread_cond_signal(&empty);
-    	pthread_mutex_unlock(&mutex);
+ 	   	pthread_mutex_unlock(&mutex);
 	}
 }
 
@@ -150,7 +205,7 @@ int main(int argc, char *argv[])
     int i;
     for (i = 0; i < num_thread; i++)
     {
-	pthread_create(&worker_pool[i], NULL, consumer, NULL);
+	pthread_create(&(worker_pool[i]), NULL, consumer, NULL);
     }
     
     // main loops forever
