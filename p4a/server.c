@@ -58,44 +58,24 @@ void put(struct request_complex request_c)
 	//Maintain a ordered list
 	//add new item into the list
 	buffer[fill_index] = request_c;
+//        printf("Putting request(fd:%d , filesize:%d\n)",request_c.fd,request_c.filesize);
 	//sorting
 	//put smallest item in the front of the queue
         //no further need to do if the count is 0
         if(count != 0){
-		//two cases
-		//case 1, use < fill
 		int i;
-		if(use_index < fill_index){
-			for(i=fill_index; i>use_index; i--){
-				if(buffer[i].filesize >= buffer[i-1].filesize){
-					break;
-				}
-				//swap
-				struct request_complex tmp;
-				rc_cpy(&tmp,&(buffer[i]));			
-				rc_cpy(&(buffer[i]),&(buffer[i-1]));
-				rc_cpy(&(buffer[i-1]),&tmp);
+		int j;
+		for(i=fill_index,j=0;j<count;i=f_index_back_wrap(i),j++){
+			if(buffer[i].filesize >= buffer[f_index_back_wrap(i)].filesize){
+				break;
 			}
+			//swap
+			struct request_complex tmp;
+			rc_cpy(&tmp,&(buffer[i]));
+			rc_cpy(&(buffer[i]),&(buffer[f_index_back_wrap(i)]));
+			rc_cpy(&(buffer[f_index_back_wrap(i)]),&tmp);
 		}
-		//case 2, use > fill
-		else if(use_index > fill_index){
-			int j;
-			for(i=fill_index,j=0;j<count;i=f_index_back_wrap(i),j++){
-				if(buffer[i].filesize >= buffer[f_index_back_wrap(i)].filesize){
-					break;
-				}
-				//swap
-				struct request_complex tmp;
-                                rc_cpy(&tmp,&(buffer[i]));
-                                rc_cpy(&(buffer[i]),&(buffer[f_index_back_wrap(i)]));
-                                rc_cpy(&(buffer[f_index_back_wrap(i)]),&tmp);
-
-			}
-		}
-		else{
-			fprintf(stderr,"inside put(), unexpected control flow\n");
-			assert(2==3);
-		}
+		
 	}
 	fill_index = (fill_index + 1) % real_size;
  	count++;
@@ -105,6 +85,7 @@ struct request_complex get() {
 	struct request_complex tmp = buffer [use_index];
 	use_index = (use_index + 1) % real_size;
 	count--;
+//	printf("Getting request(fd:%d , filesize:%d\n)",tmp.fd,tmp.filesize);
 	return tmp;
 }
 
