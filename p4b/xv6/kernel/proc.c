@@ -159,6 +159,75 @@ fork(void)
   return pid;
 }
 
+// clone method, created a new thread from parent thread 
+// child and parent share the same address space but 
+// different stack space (allocated from heap)
+int
+clone(void *stack)
+{
+  int i, pid;
+  struct proc *np;
+
+  // Allocate process.
+  if((np = allocproc()) == 0)
+    return -1;
+
+  // Copy process state from p.
+  // @ no need to cpy addr space for new thread.
+  /*
+  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+    kfree(np->kstack);
+    np->kstack = 0;
+    np->state = UNUSED;
+    return -1;
+  }
+  */
+  
+  // both child and parent points to the same page directory.
+  np->pgdir = proc->pgdir;
+  np->sz = proc->sz;
+  np->parent = proc;
+  // trap frame of the thread
+  // trap frame contains: esp, ebp, eax, etc...
+  *np->tf = *proc->tf;
+ 
+ // TODO: need to update the new stack/base ptr for the 
+ // new created thread, and copy the PGSIZE of stack as
+ // new thread's stack 
+ 
+ /* 
+ * stack = 0x9000
+ * proc->tf->esp = 0x2034
+ * proc->tf->ebp = 0x2112
+ * 
+ * copy page 2 to page 9 
+ * //?? why copy the whole page even stack ebp-esp is not PGSIZE
+ * //?? why do we copy the thing outside <esp and ebp> range?
+ *
+ * np->tf->esp = 0x9034
+ * np->tf->ebp = 0x9112
+ *
+ */ 
+
+
+
+
+  // get parent thread's esp&ebp
+  proc->tf->esp
+  // Clear %eax so that fork returns 0 in the child.
+  np->tf->eax = 0;
+
+  for(i = 0; i < NOFILE; i++)
+    if(proc->ofile[i])
+      np->ofile[i] = filedup(proc->ofile[i]);
+  np->cwd = idup(proc->cwd);
+ 
+  pid = np->pid;
+  np->state = RUNNABLE;
+  safestrcpy(np->name, proc->name, sizeof(proc->name));
+  return pid;
+}
+
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
