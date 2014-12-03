@@ -144,6 +144,14 @@ fork(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+	
+  // print esp, ebp
+  // parent
+
+  cprintf ("parents esp: %x, ebp: %x\n", proc->tf->esp,proc->tf->ebp);
+  cprintf ("child esp: %x, ebp: %x\n", np->tf->esp,np->tf->ebp);
+
+
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -213,7 +221,7 @@ clone(void *stack)
 
 
   // get parent thread's esp&ebp
-  proc->tf->esp
+  //proc->tf->esp;
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
